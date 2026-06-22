@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>One Time Pad Messenger</h1>
+    <p class="lead">
+        Information-theoretically secure message encryption using the One Time Pad cipher.
+        When used correctly, OTP provides unconditional security — unbreakable regardless of
+        adversary computing power.
+    </p>
+</section>
+
+<div class="card-grid">
+    <div class="card">
+        <div class="card-icon card-icon--encrypt">&#128274;</div>
+        <h2>Encrypt a Message</h2>
+        <p>
+            Enter your plaintext. A cryptographically random key is generated
+            server-side using the OS CSPRNG and XOR'd with your message bytes.
+            The key is displayed once and never stored.
+        </p>
+        <a href="{{ url_for('encrypt') }}" class="btn btn--primary">Encrypt &rarr;</a>
+    </div>
+
+    <div class="card">
+        <div class="card-icon card-icon--decrypt">&#128275;</div>
+        <h2>Decrypt a Message</h2>
+        <p>
+            Provide both the Base64-encoded ciphertext and the corresponding OTP key
+            you received from the sender.  The key must match the ciphertext exactly —
+            one byte per byte.
+        </p>
+        <a href="{{ url_for('decrypt') }}" class="btn btn--secondary">Decrypt &rarr;</a>
+    </div>
+</div>
+
+<div class="notice notice--warning">
+    <strong>Security Notice</strong>
+    <ul>
+        <li>The OTP key is generated server-side via a FIPS-compliant CSPRNG (<code>os.urandom</code>).</li>
+        <li>Keys are <strong>never stored</strong> — copy them immediately after generation.</li>
+        <li>Each key must be used <strong>only once</strong>. Reuse completely compromises security.</li>
+        <li>Distribute key material through a <strong>separate, approved secure channel</strong>.</li>
+        <li>This tool is accessed exclusively over TLS 1.2/1.3 with NIST SP 800-52 cipher suites.</li>
+    </ul>
+</div>
+{% endblock %}

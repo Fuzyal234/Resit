@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP Messenger</title>
+    <!-- SECURITY FINDING: No Content-Security-Policy header -->
+    <!-- SECURITY FINDING: No X-Frame-Options (clickjacking risk) -->
+</head>
+<body>
+    <h1>One Time Pad Messenger</h1>
+
+    <h2>Encrypt</h2>
+    <!-- SECURITY FINDING: No CSRF token (APSC-DV-000500) -->
+    <form method="POST" action="/encrypt">
+        <textarea name="message" rows="5" cols="50" placeholder="Enter your message..."></textarea><br>
+        <button type="submit">Encrypt</button>
+    </form>
+
+    {% if action == 'encrypt' %}
+    <h3>Encryption Result</h3>
+    <p><strong>Ciphertext (Base64):</strong><br>{{ ciphertext }}</p>
+    <p><strong>OTP Key (Base64):</strong><br>{{ key }}</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Decrypt</h2>
+    <!-- SECURITY FINDING: No CSRF token (APSC-DV-000500) -->
+    <form method="POST" action="/decrypt">
+        <textarea name="ciphertext" rows="3" cols="50" placeholder="Paste ciphertext..."></textarea><br>
+        <textarea name="key" rows="3" cols="50" placeholder="Paste OTP key..."></textarea><br>
+        <button type="submit">Decrypt</button>
+    </form>
+
+    {% if action == 'decrypt' %}
+    <h3>Decryption Result</h3>
+    <p><strong>Plaintext:</strong> {{ plaintext }}</p>
+    {% endif %}
+</body>
+</html>

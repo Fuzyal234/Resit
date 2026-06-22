@@ -1,0 +1,39 @@
+# OpenSSL configuration for OTP Messenger TLS certificate
+# Key: RSA-4096 (NIST SP 800-52 Rev 2 §3.2 — ≥2048-bit RSA)
+# Signature: SHA-256 (NIST SP 800-52 Rev 2 §3.2)
+
+[req]
+default_bits       = 4096
+default_md         = sha256
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+x509_extensions    = v3_ca
+prompt             = no
+
+[req_distinguished_name]
+C  = GB
+ST = England
+L  = London
+O  = Company X
+OU = Cybersecurity Engineering
+CN = otp-messenger.internal
+
+[v3_req]
+basicConstraints       = CA:FALSE
+keyUsage               = digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth
+subjectAltName         = @alt_names
+
+[v3_ca]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints       = CA:FALSE
+keyUsage               = digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth
+subjectAltName         = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+DNS.2 = otp-messenger.internal
+DNS.3 = nginx
+IP.1  = 127.0.0.1

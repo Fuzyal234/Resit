@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Encrypt{% endblock %}
+
+{% block content %}
+<h1>Encrypt Message</h1>
+
+<form method="POST" action="{{ url_for('encrypt') }}" autocomplete="off" class="otp-form" id="encryptForm">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        <label for="message">Plaintext Message</label>
+        {{ form.message(id="message", rows=8, cols=60,
+                        placeholder="Enter the message to encrypt…",
+                        maxlength=10000,
+                        class="form-control" + (" is-invalid" if form.message.errors else ""),
+                        spellcheck="false", autocorrect="off") }}
+        <div class="char-counter" id="charCounter">0 / 10,000 characters</div>
+        {% for error in form.message.errors %}
+        <div class="form-error">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn--primary" id="encryptBtn">Encrypt Message</button>
+    <a href="{{ url_for('index') }}" class="btn btn--ghost">Cancel</a>
+</form>
+
+{% if result %}
+<div class="result-panel" id="resultPanel">
+    <h2>Encryption Result</h2>
+    <div class="notice notice--info">
+        Copy both values now. The key is <strong>not stored</strong> and cannot be recovered.
+        Transmit the key via a separate, approved secure channel.
+    </div>
+
+    <div class="result-field">
+        <label>Ciphertext (Base64)</label>
+        <textarea class="form-control result-text" readonly id="ciphertextOut">{{ result.ciphertext }}</textarea>
+        <button class="btn btn--ghost btn--small" onclick="copyField('ciphertextOut', this)">Copy Ciphertext</button>
+    </div>
+
+    <div class="result-field">
+        <label>OTP Key (Base64) <span class="badge badge--danger">PROTECT THIS</span></label>
+        <textarea class="form-control result-text" readonly id="keyOut">{{ result.key }}</textarea>
+        <button class="btn btn--ghost btn--small" onclick="copyField('keyOut', this)">Copy Key</button>
+    </div>
+
+    <div class="notice notice--warning">
+        <strong>Key Security Reminders</strong>
+        <ul>
+            <li>This key must <strong>never be reused</strong>.</li>
+            <li>The ciphertext and key must travel via <strong>different channels</strong>.</li>
+            <li>Securely delete this page from your browser history after copying.</li>
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

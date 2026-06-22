@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Original (baseline) docker-compose
+# SECURITY FINDINGS documented inline
+
+services:
+  flask_app:
+    build: ./flask_app
+    image: otp-original-flask:latest
+    # SECURITY FINDING: App port exposed directly to host (bypasses nginx)
+    ports:
+      - "5000:5000"
+    environment:
+      # SECURITY FINDING: Debug mode enabled
+      - FLASK_DEBUG=1
+      - FLASK_ENV=development
+    # SECURITY FINDING: No resource limits
+    # SECURITY FINDING: No health check
+    # SECURITY FINDING: No read-only filesystem
+
+  nginx:
+    build: ./nginx
+    image: otp-original-nginx:latest
+    ports:
+      - "80:80"
+      # SECURITY FINDING: No HTTPS port (443)
+    depends_on:
+      - flask_app
+    # SECURITY FINDING: No resource limits
+
+# SECURITY FINDING: No isolated network; all services on default bridge
