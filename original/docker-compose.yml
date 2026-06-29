@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Original (baseline) docker-compose
 # SECURITY FINDINGS documented inline
 

@@ -1,0 +1,28 @@
+# ── Secrets & environment ───────────────────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ── TLS private key material (certs are environment-specific) ────────────────
+certs/*.key
+certs/server.crt
+certs/dhparam.pem
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# ── OS / editor cruft ───────────────────────────────────────────────────────
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# ── Logs ────────────────────────────────────────────────────────────────────
+logs/*.log
+*.log

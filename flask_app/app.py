@@ -12,7 +12,7 @@ import logging
 import logging.handlers
 from datetime import datetime
 
-from flask import (Flask, render_template, request,
+from flask import (Flask, render_template, request, current_app,
                    redirect, url_for, abort, make_response)
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
@@ -90,7 +90,9 @@ csrf = CSRFProtect()
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",
+    # Shared store (e.g. redis://) makes app-layer limits correct across workers.
+    # Defaults to in-process memory://; nginx limit_req is the primary, shared gate.
+    storage_uri=os.environ.get("RATELIMIT_STORAGE_URI", "memory://"),
 )
 
 
@@ -246,19 +248,17 @@ def encrypt():
                 result = {'ciphertext': ct_b64, 'key': key_b64}
                 # Audit log: operation outcome WITHOUT sensitive data
                 # (APSC-DV-003010 / V-222432, APSC-DV-003200 / V-222406)
-                app_logger = logging.getLogger('otp_messenger')
-                app_logger.info(
+                current_app.logger.info(
                     'ENCRYPT | RESULT=SUCCESS | '
                     f'MSG_BYTES={len(base64.b64decode(ct_b64))}'
                 )
             except ValueError as exc:
-                app_logger = logging.getLogger('otp_messenger')
-                app_logger.warning(f'ENCRYPT | RESULT=FAILURE | REASON={exc}')
+                current_app.logger.warning(f'ENCRYPT | RESULT=FAILURE | REASON={exc}')
                 # Generic error to user — never expose internal detail
                 # (APSC-DV-000560 / V-222480)
                 form.message.errors.append('Encryption failed. Please try again.')
         else:
-            logging.getLogger('otp_messenger').warning(
+            current_app.logger.warning(
                 'ENCRYPT | RESULT=VALIDATION_FAILURE | '
                 f'ERRORS={form.errors}'
             )
@@ -276,17 +276,17 @@ def decrypt():
                     form.ciphertext.data.strip(),
                     form.key.data.strip(),
                 )
-                logging.getLogger('otp_messenger').info(
+                current_app.logger.info(
                     'DECRYPT | RESULT=SUCCESS'
                 )
             except ValueError as exc:
-                logging.getLogger('otp_messenger').warning(
+                current_app.logger.warning(
                     f'DECRYPT | RESULT=FAILURE | REASON={exc}'
                 )
                 # Surfaces only safe, non-revealing error text
                 error = str(exc)
         else:
-            logging.getLogger('otp_messenger').warning(
+            current_app.logger.warning(
                 'DECRYPT | RESULT=VALIDATION_FAILURE'
             )
     return render_template('decrypt.html', form=form,
@@ -320,13 +320,13 @@ def _register_error_handlers(app: Flask) -> None:
 
     @app.errorhandler(429)
     def rate_limited(_e):
-        logging.getLogger('otp_messenger').warning('RATE_LIMIT_EXCEEDED')
+        app.logger.warning('RATE_LIMIT_EXCEEDED')
         return render_template('error.html', code=429,
                                message='Too many requests. Please slow down.'), 429
 
     @app.errorhandler(500)
     def internal_error(e):
-        logging.getLogger('otp_messenger').error(f'INTERNAL_ERROR | {type(e).__name__}')
+        app.logger.error(f'INTERNAL_ERROR | {type(e).__name__}')
         return render_template('error.html', code=500,
                                message='An internal error occurred.'), 500
 

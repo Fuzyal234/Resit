@@ -41,6 +41,9 @@ CMD ["gunicorn", \
      "--bind", "0.0.0.0:5000", \
      "--workers", "4", \
      "--timeout", "30", \
+     "--graceful-timeout", "30", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
      "--log-level", "info", \

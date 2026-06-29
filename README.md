@@ -29,32 +29,41 @@ Browser-based One Time Pad (OTP) encryption tool. Provides information-theoretic
 
 ## Quick Start
 
-### 1. Generate TLS certificates
+### 1. Create the environment file
+```bash
+cp .env.example .env
+# then set a strong secret:
+python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_hex(32))"
+```
+> `.env` holds `SECRET_KEY` and runtime config. It is gitignored — never commit it.
+> In production, inject these values from a secrets manager (Vault, AWS SSM).
+
+### 2. Generate TLS certificates
 ```bash
 make certs
 ```
 > This generates a 4096-bit RSA key, SHA-256 self-signed cert, and 4096-bit DH parameters.
 > The DH parameter generation may take 5–15 minutes.
 
-### 2. Build and start
+### 3. Build and start
 ```bash
 make build
 make up
 ```
 
-### 3. Access the application
+### 4. Access the application
 ```
 https://localhost
 ```
 > Accept the self-signed certificate warning in your browser.
 > In production, replace with a CA-issued certificate.
 
-### 4. View logs
+### 5. View logs
 ```bash
 make logs
 ```
 
-### 5. TLS compliance verification
+### 6. TLS compliance verification
 ```bash
 make test-tls
 ```
@@ -79,9 +88,13 @@ Full reports:
 
 ## Production Deployment Checklist
 
+- [x] Externalise secrets to `.env` (gitignored); no secrets committed to the repo
+- [x] Gunicorn worker recycling (`--max-requests`) to bound memory growth
+- [x] Rate-limit storage configurable for multi-worker correctness (`RATELIMIT_STORAGE_URI`)
 - [ ] Replace `certs/server.crt` and `certs/server.key` with CA-issued certificate
 - [ ] Deploy on FIPS 140-2 enabled host OS (e.g. RHEL 8/9 with `fips=1`)
-- [ ] Inject `SECRET_KEY` from a secrets manager (Vault, AWS Secrets Manager)
+- [ ] Inject `SECRET_KEY` from a secrets manager (Vault, AWS Secrets Manager) instead of `.env`
+- [ ] Point `RATELIMIT_STORAGE_URI` at Redis if strict app-layer limits are required
 - [ ] Configure centralised log aggregation (SIEM) for audit log retention
 - [ ] Document OTP key distribution procedure in Key Management Policy
 - [ ] Run `make scan-final` and review Trivy output before deployment
